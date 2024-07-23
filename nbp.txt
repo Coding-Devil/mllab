@@ -1,24 +1,20 @@
-import numpy as np
-import pandas as pd
-
-data = pd.read_csv("play_tennis.csv").drop(["day"], axis=1)
-
 def naive_bayes_predict(data, target_name, test_instance):
-    target_counts = data[target_name].value_counts(normalize=True)
-
-    print("PTargets", target_counts)
-    proba_target_values = (data[data.columns[data.shape[1] - 1]].value_counts()/data.shape[0]).to_dict()
-    print("Proba_target_values", proba_target_values)
-    predictions = {}
-
-    for target, prior in target_counts.items():
-        likelihood = 1
+    target_values = data[target_name].unique()
+    print(target_values)
+    predicted_target_values = {}
+    for target in target_values:
+        target_proba = (data[target_name] == target).mean()
+        print(target_proba)
+        attrib_proba = 1
         for attrib, value in test_instance.items():
-            likelihood *= data[data[target_name] == target][attrib].value_counts(normalize=True).get(value, 0)
-        predictions[target] = prior * likelihood
+            attrib_value_conditional_proba = (data[attrib] == value)[data[target_name] == target].mean()
+            attrib_proba *= attrib_value_conditional_proba
+        predicted_target_values[target] = target_proba * attrib_proba
+    return predicted_target_values
 
-    return predictions
-
+# Creates a test instance
 test_instance = {"outlook": "Sunny", "temp": "Cool", "humidity": "High", "wind": "Strong"}
-prediction = naive_bayes_predict(data, data.columns[-1], test_instance)
+
+# Performs prediction
+prediction = naive_bayes_predict(data.copy(), data.columns[data.shape[1] - 1], test_instance)
 print("Prediction is:", prediction)
