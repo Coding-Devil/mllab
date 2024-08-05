@@ -1,0 +1,38 @@
+import pandas as pd
+import numpy as np
+from urllib.request import urlopen
+from sklearn.feature_selection import VarianceThreshold
+from matplotlib import pyplot as plt
+
+
+path = 'https://raw.githubusercontent.com/jbrownlee/Datasets/master/oil-spill.csv'
+df = pd.read_csv(path, header=None)
+
+print(df.nunique())
+print(df.shape)
+
+df.drop(columns=[i for i, v in enumerate(df.nunique()) if v == 1], inplace=True)
+print(df.shape)
+
+df.drop(columns=[i for i, v in enumerate(df.nunique()) if (v / df.shape[0] * 100) < 1], inplace=True)
+print(df.shape)
+
+data = df.values
+X, y = data[:, :-1], data[:, -1]
+print(X.shape, y.shape)
+
+thresholds = np.arange(0.0, 0.55, 0.05)
+results = []
+
+for t in thresholds:
+    transform = VarianceThreshold(threshold=t)
+    X_sel = transform.fit_transform(X)
+    n_features = X_sel.shape[1]
+    print(f'>Threshold={t:.2f}, Features={n_features}')
+    results.append(n_features)
+    
+plt.plot(thresholds, results)
+plt.xlabel('Variance Threshold')
+plt.ylabel('Number of Features')
+plt.title('Variance Threshold vs Number of Features')
+plt.show()
